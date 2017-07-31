@@ -14,8 +14,11 @@ if(!file.exists(fileDest)){
 
 train <- fread("./UCI HAR Dataset/train/X_train.txt")
 ltrain <- fread("./UCI HAR Dataset/train/y_train.txt")
+strain <- fread("./UCI HAR Dataset/train/subject_train.txt")
+
 test <- fread("./UCI HAR Dataset/test/X_test.txt")
 ltest <- fread("./UCI HAR Dataset/test/y_test.txt")
+stest <- fread("./UCI HAR Dataset/test/subject_test.txt")
 
 # 1. Combined dataset
 data <- rbind(train, test)
@@ -27,13 +30,16 @@ meanNstd <- data[, features$V1, with = FALSE] # dataset with mean and standard d
 
 # 3/4. Descriptive names and labled columns
 lables <- rbind(ltrain, ltest)
+subjects <- rbind(strain, stest)
 activity_lables <- fread("./UCI HAR Dataset/activity_labels.txt")
 colnames(meanNstd) <- features$V2
 meanNstd <- cbind(meanNstd,
                   merge(lables, activity_lables,
                         by="V1", sort = FALSE)$V2)
 names(meanNstd)[names(meanNstd) == "V2"] <- "activity"
+meanNstd <- cbind(meanNstd,subjects)
+names(meanNstd)[names(meanNstd) == "V1"] <- "subject"
 
 # 5. Creating a tidy data set
-tidySet <- meanNstd[, lapply(.SD, mean), by = "activity"]
+tidySet <- meanNstd[, lapply(.SD, mean), by = c("activity", "subject")]
 write.table(tidySet, file = "tidySet.txt", row.name = FALSE)
